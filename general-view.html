@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - SalesPro CRM</title>
+  <style>
+    :root {
+      --primary: #4a6da7;
+      --card-bg: #fff;
+      --bg: #f7f9fb;
+      --border-color: #ddd;
+      --success: #28a745;
+      --warning: #ffc107;
+      --info: #17a2b8;
+      --danger: #dc3545;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: #333; }
+    .container { display: flex; }
+    /* Sidebar fixed */
+    .sidebar {
+      width: 240px;
+      background: #fff;
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+    }
+    .logo { height: 60px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; color: var(--primary); border-bottom: 1px solid var(--border-color); }
+    .nav-links { list-style: none; padding: 0; margin: 0; }
+    .nav-links a { display: block; padding: 0.75rem 1rem; color: #555; text-decoration: none; font-weight: 500; }
+    .nav-links a:hover, .nav-links a.active { background: rgba(74, 109, 167, 0.1); color: var(--primary); }
+    .user-info { padding: 1rem; border-top: 1px solid var(--border-color); text-align: center; }
+    .avatar { width: 48px; height: 48px; border-radius: 50%; margin-bottom: 0.5rem; }
+    /* Main panel scrollable */
+    .main-panel {
+      flex: 1;
+      margin-left: 240px;
+      padding: 1rem;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    /* Smaller target cards */
+    .stats-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .card { background: var(--card-bg); border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 0.75rem; border: 1px solid var(--border-color); margin-bottom: 1rem; }
+    .card-title { font-weight: 600; margin-bottom: 0.5rem; color: #444; font-size: 1rem; }
+    /* Gauge adjusted */
+    .gauge-container { text-align: center; }
+    .gauge { width: 150px; height: 80px; margin: 0 auto; }
+    .gauge-value { margin-top: 0.25rem; font-size: 1.1rem; font-weight: bold; }
+    .gauge-label { font-size: 0.8rem; color: #666; }
+    /* Team progress smaller */
+    .team-progress { display: flex; flex-direction: column; gap: 0.5rem; }
+    .progress-bar { background: #f1f3f5; border-radius: 4px; overflow: hidden; height: 6px; margin: 0.25rem 0; }
+    .progress-bar-inner { height: 100%; background: var(--primary); }
+    /* Funnel section unchanged */
+    .funnel-section { display: flex; gap: 1rem; }
+    .funnel-chart-container canvas { width: 100%; height: 300px; }
+    .funnel-table-container { flex: 1; }
+    .funnel-table { width: 100%; border-collapse: collapse; }
+    .funnel-table th, .funnel-table td { padding: 0.5rem; border: 1px solid #eee; text-align: right; font-size: 0.9rem; }
+    .funnel-table th { background: #f8f9fa; text-align: center; }
+    .funnel-table td:first-child { text-align: left; }
+    .kpi-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin: 1rem 0; }
+    /* Tasks styling ensure 3 visible tasks */
+    .tasks-table table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+    .tasks-table th { text-align: left; padding: 0.75rem; color: #555; font-weight: 600; }
+    .tasks-table tbody tr:nth-child(n+4) { display: none; }
+    .tasks-table td { background: var(--card-bg); padding: 0.75rem; border: 1px solid #eee; border-radius: 4px; vertical-align: middle; }
+    .task-link { color: var(--primary); text-decoration: none; font-weight: 500; }
+    .task-link:hover { text-decoration: underline; }
+    .status-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; color: #fff; }
+    .status-open { background: var(--info); }
+    .status-in-progress { background: var(--warning); }
+    .status-completed { background: var(--success); }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <div>
+        <div class="logo">SalesPro</div>
+        <ul class="nav-links">
+          <li><a href="#" class="active">Panel główny</a></li>
+          <li><a href="#">CRM</a></li>
+          <li><a href="#">Mapa realizacji</a></li>
+          <li><a href="#">Materiały sprzedażowe</a></li>
+          <li><a href="#">Szablony</a></li>
+          <li><a href="#">Raporty</a></li>
+          <li><a href="#">Baza wiedzy</a></li>
+        </ul>
+      </div>
+      <div>
+        <ul class="nav-links">
+          <li><a href="#">Ustawienia</a></li>
+          <li><a href="#">Wyloguj</a></li>
+        </ul>
+        <div class="user-info">
+          <img src="/path/to/avatar.jpg" alt="Avatar" class="avatar">
+          <div>Jan Kowalski</div>
+        </div>
+      </div>
+    </aside>
+    <main class="main-panel">
+      <!-- Targets -->
+      <div class="stats-cards">
+        <div class="card">
+          <div class="card-title">Realizacja targetu rocznego</div>
+          <div class="gauge-container">
+            <canvas id="gaugeChart" class="gauge"></canvas>
+            <div class="gauge-value">40%</div>
+            <div class="gauge-label">80 mln zł / 200 mln zł</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Realizacja targetu per zespół</div>
+          <div class="team-progress">
+            <div>Zespół 1: 62.5% (50 mln zł / 80 mln zł)
+              <div class="progress-bar"><div class="progress-bar-inner" style="width:62.5%;"></div></div>
+            </div>
+            <div>Zespół 2: 75.0% (60 mln zł / 80 mln zł)
+              <div class="progress-bar"><div class="progress-bar-inner" style="width:75%;"></div></div>
+            </div>
+            <div>Zespół 3: 80.0% (32 mln zł / 40 mln zł)
+              <div class="progress-bar"><div class="progress-bar-inner" style="width:80%;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Sales Funnel -->
+      <div class="card">
+        <div class="card-title">Sales Funnel</div>
+        <div class="funnel-section">
+          <div class="funnel-chart-container">
+            <canvas id="salesFunnelChart"></canvas>
+          </div>
+          <div class="funnel-table-container">
+            <table class="funnel-table">
+              <thead>
+                <tr><th>Etap</th><th>Ilość</th><th>Wartość (zł)</th><th>Konw. (%)</th></tr>
+              </thead>
+              <tbody id="funnelMetricsBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="kpi-cards">
+          <div class="card"><div class="card-title">Współczynnik konwersji</div><div>15%</div></div>
+          <div class="card"><div class="card-title">Średnia wartość oferty</div><div>120 000 zł</div></div>
+          <div class="card"><div class="card-title">Średnia powierzchnia</div><div>3 500 m²</div></div>
+        </div>
+      </div>
+      <!-- Tasks -->
+      <div class="card tasks-table">
+        <div class="card-title">Zadania przypisane</div>
+        <table>
+          <thead>
+            <tr><th>Nazwa zadania</th><th>Data wykonania</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a href="#" class="task-link">Follow-up po ofercie</a></td>
+              <td>25.05.2025</td>
+              <td><span class="status-badge status-open">Otwarte</span></td>
+            </tr>
+            <tr>
+              <td><a href="#" class="task-link">Przygotowanie kosztorysu</a></td>
+              <td>15.06.2025</td>
+              <td><span class="status-badge status-in-progress">W toku</span></td>
+            </tr>
+            <tr>
+              <td><a href="#" class="task-link">Ustalenie spotkania</a></td>
+              <td>10.05.2025</td>
+              <td><span class="status-badge status-completed">Zakończone</span></td>
+            </tr>
+            <tr>
+              <td><a href="#" class="task-link">Dodatkowe zadanie</a></td>
+              <td>20.07.2025</td>
+              <td><span class="status-badge status-open">Otwarte</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+  <script>
+    // Gauge chart
+    const gaugeCtx = document.getElementById('gaugeChart').getContext('2d');
+    new Chart(gaugeCtx, {
+      type: 'doughnut', data: { datasets: [{ data: [80, 120], backgroundColor: ['rgba(74,109,167,0.8)','rgba(0,0,0,0.1)'], cutout: '80%', rotation: -90, circumference: 180 }] },
+      options: { responsive: false, plugins: { tooltip: { enabled: false } } }
+    });
+    // Sales Funnel data
+    const stages = Array.from({ length: 9 }, (_, i) => `Etap ${i+1}`);
+    const counts = stages.map(() => Math.floor(Math.random() * 80) + 20);
+    const values = counts.map(c => c * (Math.floor(Math.random() * 100) + 20) * 1000);
+    const convRate = counts.map((c,i) => i === 0 ? 100 : ((c / counts[i-1]) * 100).toFixed(1));
+    // Populate funnel table
+    const tbodyFunnel = document.getElementById('funnelMetricsBody');
+    stages.forEach((stage, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${stage}</td><td>${counts[idx]}</td><td>${values[idx].toLocaleString('pl-PL')}</td><td>${convRate[idx]}</td>`;
+      tbodyFunnel.appendChild(tr);
+    });
+    // Render funnel chart
+    new Chart(document.getElementById('salesFunnelChart').getContext('2d'), {
+      type: 'bar', data: { labels: stages, datasets: [{ label: 'Ilość ofert', data: counts, backgroundColor: 'rgba(74,109,167,0.6)' }] },
+      options: { indexAxis: 'y', scales: { x: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+    });
+  </script>
+</body>
+</html>
