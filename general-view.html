@@ -3,70 +3,93 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Panel Główny - SalesPro CRM</title>
   <style>
+    /* (Twoje istniejące style dashboardu, sidebaru, kart itd.) */
     :root {
       --primary: #4a6da7;
       --card-bg: #fff;
       --bg: #f7f9fb;
       --border-color: #ddd;
-      --success: #28a745;
-      --warning: #ffc107;
-      --info: #17a2b8;
-      --danger: #dc3545;
+      --text-color: #333;
     }
     *, *::before, *::after { box-sizing: border-box; }
-    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: #333; }
-    .container { display: flex; }
-    .sidebar { width: 240px; background: var(--card-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between; height: 100vh; position: fixed; top: 0; left: 0; overflow-y: auto; }
-    .logo { height: 60px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; color: var(--primary); border-bottom: 1px solid var(--border-color); }
-    .nav-links { list-style: none; padding: 0; margin: 0; }
-    .nav-links a { display: block; padding: 0.75rem 1rem; color: #555; text-decoration: none; font-weight: 500; }
-    .nav-links a:hover, .nav-links a.active { background: rgba(74, 109, 167, 0.1); color: var(--primary); }
-    .sidebar-footer { border-top: 1px solid var(--border-color); padding: 1rem; text-align: center; }
-    .user-info { margin-bottom: 1rem; }
-    .avatar { width: 48px; height: 48px; border-radius: 50%; margin-bottom: 0.5rem; }
-    .user-name { font-weight: 600; }
-    .logout-btn { display: inline-block; margin-top: 0.5rem; color: var(--primary); text-decoration: none; font-size: 0.9rem; }
-    .logout-btn:hover { text-decoration: underline; }
-    .main-panel { flex: 1; margin-left: 240px; padding: 1rem; height: 100vh; overflow-y: auto; }
-    /* wystylowanie kart, tabel, wykresów… (kopiuj z oryginalnego pliku) */
-    /* … */
+    body { margin:0; display:flex; height:100vh; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text-color); }
+    .container { display:flex; width:100%; }
+    .sidebar { width:240px; background:var(--card-bg); border-right:1px solid var(--border-color); display:flex; flex-direction:column; justify-content:space-between; }
+    .logo { height:60px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:bold; color:var(--primary); border-bottom:1px solid var(--border-color); }
+    .nav-links { list-style:none; margin:0; padding:0; }
+    .nav-links a { display:block; padding:0.75rem 1rem; color:#555; text-decoration:none; font-weight:500; }
+    .nav-links a:hover, .nav-links a.active { background:rgba(74,109,167,0.1); color:var(--primary); }
+    .sidebar-footer { border-top:1px solid var(--border-color); padding:1rem; text-align:center; }
+    .user-info { margin-bottom:1rem; }
+    .avatar { width:48px; height:48px; border-radius:50%; margin-bottom:0.5rem; }
+    .user-name { font-weight:600; }
+    .logout-btn { display:inline-block; margin-top:0.5rem; color:var(--primary); text-decoration:none; font-size:0.9rem; }
+    .logout-btn:hover { text-decoration:underline; }
+    main { flex:1; padding:1rem; overflow-y:auto; }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+  <!-- Upewnij się, że to jest UMD build -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
-    const SUPABASE_URL = 'https://rlkeeembpbodgthrphci.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5c';
+    // Wklej tutaj CAŁY klucz anon z Supabase → Settings › API › Config
+    const SUPABASE_URL     = 'https://rlkeeembpbodgthrphci.supabase.co';
+    const SUPABASE_ANON_KEY= 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJsa2VlZW1icGJvZGd0aHJwaGNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MTg2MzcsImV4cCI6MjA2MzQ5NDYzN30.H4J9_RBtV8LzmOwkOdKpiR2w0ymaihW-6NqVGOkH79I';
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // Zawsze bindujemy logout od razu, niezależnie od fetchy
+    document.addEventListener('DOMContentLoaded', () => {
+      const logout = document.querySelector('.logout-btn');
+      if (logout) {
+        logout.addEventListener('click', (e) => {
+          e.preventDefault();
+          localStorage.removeItem('spcrm_user');
+          window.location.href = 'index.html';
+        });
+      }
+    });
+
+    // Główna logika: fetch user i init dashboard
     document.addEventListener('DOMContentLoaded', async () => {
-      // Weryfikacja sesji
-      const sessionData = localStorage.getItem('spcrm_user');
-      if (!sessionData) return window.location.href = 'index.html';
-      const session = JSON.parse(sessionData);
+      // 1) Sprawdź sesję
+      const sessionJson = localStorage.getItem('spcrm_user');
+      if (!sessionJson) {
+        console.warn('Brak sesji, przekierowuję na logowanie');
+        return window.location.href = 'index.html';
+      }
+      const session = JSON.parse(sessionJson);
 
-      // Pobierz imię i nazwisko
-      const { data: user } = await supabase.from('users').select('first_name, last_name').eq('id', session.id).single();
-      document.querySelector('.user-name').textContent = `${user.first_name} ${user.last_name}`;
+      // 2) Pobierz first_name, last_name
+      try {
+        const { data: user, error } = await supabase
+          .from('users')
+          .select('first_name, last_name')
+          .eq('id', session.id)
+          .single();
 
-      // Obsługa wylogowania
-      document.querySelector('.logout-btn').addEventListener('click', () => {
-        localStorage.removeItem('spcrm_user');
-        window.location.href = 'index.html';
-      });
+        if (error) throw error;
+        document.querySelector('.user-name').textContent =
+          `${user.first_name} ${user.last_name}`;
+      } catch (err) {
+        console.error('Błąd przy pobieraniu użytkownika:', err);
+        // Możesz tu np. wylogować lub wyświetlić komunikat
+      }
 
-      // Inicjalizacja dashboardu (wykresy, tabele… pisz logikę dalej)
-      // [... existing script from original general-view.txt ...]
+      // 3) Tutaj wstaw resztę kodu inicjującego wykresy/tabele z oryginalnego general-view.txt
+      // ↓↓↓
+      // ... existing dashboard scripts ...
+      // ↑↑↑
     });
   </script>
 </head>
+
 <body>
   <div class="container">
     <aside class="sidebar">
       <div>
-        <div class="logo">SalesPro</div>
+        <div class="logo">SalesPro CRM</div>
         <ul class="nav-links">
           <li><a href="#" class="active">Panel główny</a></li>
           <li><a href="#">CRM</a></li>
@@ -79,14 +102,15 @@
       </div>
       <div class="sidebar-footer">
         <div class="user-info">
-          <img src="/path/to/avatar.jpg" alt="Avatar" class="avatar" />
-          <div class="user-name">Ładowanie...</div>
+          <img src="/path/to/avatar.jpg" alt="Avatar" class="avatar"/>
+          <div class="user-name">Ładowanie…</div>
         </div>
         <a href="#" class="logout-btn">Wyloguj</a>
       </div>
     </aside>
+
     <main class="main-panel">
-      <!-- Tu wklej pełną zawartość z oryginalnego general-view.txt dotyczącego dashboardu -->
+      <!-- TU wklej pełną zawartość z oryginalnego general-view.txt -->
     </main>
   </div>
 </body>
