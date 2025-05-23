@@ -113,16 +113,20 @@
         .select('id, login')
         .eq('login', login)
         .eq('password', password)
-        .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (error || !data) {
+      if (error) {
+        console.error(error);
+        errorDiv.textContent = 'Wystąpił błąd serwera. Spróbuj ponownie.';
+        return;
+      }
+      if (!data) {
         errorDiv.textContent = 'Nieprawidłowy login lub hasło';
         return;
       }
 
       // Zapisanie flagi sesji lokalnie
-      localStorage.setItem('spcrm_user', JSON.stringify({ id: data.id, login: data.users }));
+      localStorage.setItem('spcrm_user', JSON.stringify({ id: data.id, login: data.login }));
       window.location.href = 'general-view.html';
     });
 
