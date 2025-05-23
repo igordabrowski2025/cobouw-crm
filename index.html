@@ -8,137 +8,63 @@
   <style>
     :root {
       --primary: #4a6da7;
-      --primary-light: rgba(74, 109, 167, 0.1);
       --primary-dark: #395682;
-      --neutral-label: #616161;
       --neutral-bg: #f7f9fb;
       --border-color: #ddd;
       --error-color: #e74c3c;
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: var(--neutral-bg);
-      color: #333;
-      line-height: 1.6;
-      height: 100vh;
+      background: var(--neutral-bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
+      height: 100vh;
     }
-
     .login-container {
       width: 100%;
       max-width: 420px;
       padding: 2rem;
     }
-
-    .logo-container {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
-    .logo {
-      font-size: 2rem;
-      font-weight: 600;
-      color: var(--primary);
-      display: inline-block;
-    }
-
     .login-card {
-      background-color: white;
+      background: #fff;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       padding: 2rem;
     }
-
-    .login-header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
     .login-header h1 {
       font-size: 1.5rem;
       font-weight: 600;
       color: #333;
-    }
-
-    .form-group {
+      text-align: center;
       margin-bottom: 1.5rem;
     }
-
+    .form-group { margin-bottom: 1.25rem; }
     .form-group label {
       display: block;
       margin-bottom: 0.5rem;
       font-weight: 500;
       color: #555;
     }
-
     .form-input {
       width: 100%;
       padding: 0.75rem;
       border: 1px solid var(--border-color);
       border-radius: 4px;
       font-size: 1rem;
-      transition: border-color 0.2s ease;
     }
-
-    .form-input:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px var(--primary-light);
-    }
-
     .btn {
-      display: block;
       width: 100%;
-      padding: 0.75rem 1rem;
-      border-radius: 4px;
+      padding: 0.75rem;
       border: none;
-      font-weight: 500;
+      border-radius: 4px;
+      background: var(--primary);
+      color: #fff;
       font-size: 1rem;
       cursor: pointer;
-      text-align: center;
-      transition: background-color 0.2s ease;
     }
-
-    .btn-primary {
-      background-color: var(--primary);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background-color: var(--primary-dark);
-    }
-
-    .forgot-password {
-      text-align: center;
-      margin-top: 1rem;
-    }
-
-    .forgot-password a {
-      color: var(--primary);
-      text-decoration: none;
-      font-size: 0.9rem;
-    }
-
-    .forgot-password a:hover {
-      text-decoration: underline;
-    }
-
-    .login-footer {
-      text-align: center;
-      margin-top: 2rem;
-      color: #888;
-      font-size: 0.85rem;
-    }
-
+    .btn:hover { background: var(--primary-dark); }
     #error-msg {
       margin-top: 1rem;
       font-size: 0.9rem;
@@ -150,72 +76,59 @@
 </head>
 <body>
   <div class="login-container">
-    <div class="logo-container">
-      <div class="logo">SalesPro CRM</div>
-    </div>
-    
     <div class="login-card">
-      <div class="login-header">
-        <h1>Zaloguj się do systemu</h1>
-      </div>
-      
+      <div class="login-header"><h1>Logowanie</h1></div>
       <form id="login-form">
         <div class="form-group">
           <label for="username">Login</label>
           <input type="text" id="username" class="form-input" placeholder="Wprowadź login" required>
         </div>
-        
         <div class="form-group">
           <label for="password">Hasło</label>
           <input type="password" id="password" class="form-input" placeholder="Wprowadź hasło" required>
         </div>
-        
-        <button type="submit" class="btn btn-primary">Zaloguj się</button>
+        <button type="submit" class="btn">Zaloguj się</button>
         <div id="error-msg"></div>
-        
-        <div class="forgot-password">
-          <a href="#">Nie pamiętam hasła</a>
-        </div>
       </form>
-    </div>
-    
-    <div class="login-footer">
-      &copy; 2025 SalesPro CRM. Wszystkie prawa zastrzeżone.
     </div>
   </div>
 
   <!-- Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
-    // Inicjalizacja Supabase
     const SUPABASE_URL = 'https://rlkeeembpbodgthrphci.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJsa2VlZW1icGJvZGd0aHJwaGNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MTg2MzcsImV4cCI6MjA2MzQ5NDYzN30.H4J9_RBtV8LzmOwkOdKpiR2w0ymaihW-6NqVGOkH79I';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Obsługa logowania
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = document.getElementById('login').value;
+      const login = document.getElementById('username').value;
       const password = document.getElementById('password').value;
       const errorDiv = document.getElementById('error-msg');
       errorDiv.textContent = '';
 
-      const { data, error } = await supabaseClient.auth.signInWithPassword({ login, password });
-      if (error) {
-        errorDiv.textContent = error.message;
+      // Pobranie użytkownika z tabeli "users"
+      const { data, error } = await supabaseClient
+        .from('users')
+        .select('id, users')
+        .eq('users', login)
+        .eq('password', password)
+        .limit(1)
+        .single();
+
+      if (error || !data) {
+        errorDiv.textContent = 'Nieprawidłowy login lub hasło';
         return;
       }
 
-      // Przekierowanie po udanym zalogowaniu
+      // Zapisanie flagi sesji lokalnie
+      localStorage.setItem('spcrm_user', JSON.stringify({ id: data.id, login: data.users }));
       window.location.href = 'general-view.html';
     });
-  </script>
 
-  <!-- Redirect, jeśli już zalogowany -->
-  <script>
-    (async () => {
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (session) {
+    // Automatyczne przekierowanie, jeśli już zalogowany
+    (function() {
+      if (localStorage.getItem('spcrm_user')) {
         window.location.href = 'general-view.html';
       }
     })();
